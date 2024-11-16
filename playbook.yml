@@ -1,0 +1,84 @@
+---
+- hosts: all
+  become: true
+
+
+  handlers:
+   - name: restart nginx
+     service:
+      name: nginx
+      state: restarted
+
+  pre_tasks:
+
+   - name: Ensure apt is updated.
+     apt:
+      update_cache: yes
+      cache_valid_time: 3600
+
+   - name: Install dependency for pyopenssl.
+     apt:
+      name: libssl-dev
+      state: present
+
+  roles:
+   - geerlingguy.pip
+   - geerlingguy.nginx
+
+  tasks:
+   - name: Ensure directory exists for local self-signed TLS certs.
+     file:
+      path: /etc/ssl/certs/example
+      state: directory
+
+   - name: Generate an OpenSSL private key. | PRIVATE KEY GEN
+     openssl_privatekey:
+      path: /etc/ssl/certs/example/privkey.pem
+
+   - name: Generate an openSSL CSR. | CERTIFICATE SIGNING REQUEST (.csr)
+     openssl_csr:
+      path: /etc/ssl/certs/example/example.csr
+      privatekey_path: /etc/ssl/certs/example/privkey.pem
+      common_name: "example.com"
+
+   - name: Generate a Self Signed OpenSSL certificate. | SELF SIGNED CERT GENERATED (.pem)
+     openssl_certificate:
+      path: /etc/ssl/certs/example/fullchain.pem
+      privatekey_path: /etc/ssl/certs/example/privkey.pem
+      csr_path: /etc/ssl/certs/example/example.csr
+      provider: selfsigned
+
+
+   - name: Ensure preinstaled folder /var/www/html was made when installing nginx.
+     file:
+      path: /var/www/html
+      state: directory
+
+   - name: Copy example index.html file to a remote server.
+     copy:
+      src: files/index.html
+      dest: "/var/www/html/index.html"
+      mode: 0755
+
+
+   - name: Disable default nginx.
+     file:
+      path: "/etc/nginx/sites-enabled/default"
+      state: absent
+     notify:
+      - restart nginx
+
+   - name: Copy Nginx server configuration in place.
+     template:
+      src: templates/https.test.conf.j2
+      dest: /etc/nginx/sites-available/https.test.conf
+      mode: 0644
+
+
+   - name: Link site from sites-available to sites-enabled.
+     file:
+      src: "/etc/nginx/sites-available/https.test.conf"
+      dest: "/etc/nginx/sites-enabled/https.test.conf"
+      state: link
+     notify:
+      - restart nginx

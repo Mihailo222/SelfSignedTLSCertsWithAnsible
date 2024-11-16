@@ -1,0 +1,19 @@
+# HTTPS Test server configuration.
+
+# Redirect HTTP traffic to HTTPS.
+ server {
+         listen 80 default_server;
+         server_name mikaServer.com;
+         index index.html;
+         return 301 https://$host$request_uri;
+ }
+
+ # Serve HTTPS traffic using the self-signed certificate created by Ansible.
+server {
+listen 443 ssl default_server;
+server_name ubuntu-tester;
+root  /var/www/html;
+
+ssl_certificate /etc/ssl/certs/example/fullchain.pem;
+ssl_certificate_key /etc/ssl/certs/example/privkey.pem;
+}
