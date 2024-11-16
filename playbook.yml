@@ -35,13 +35,13 @@
      openssl_privatekey:
       path: /etc/ssl/certs/example/privkey.pem
 
-   - name: Generate an openSSL CSR. | CERTIFICATE SIGNING REQUEST (.csr)
+   - name: Generate an openSSL CSR. | CERTIFICATE SIGNING REQUEST (.csr) 
      openssl_csr:
       path: /etc/ssl/certs/example/example.csr
       privatekey_path: /etc/ssl/certs/example/privkey.pem
       common_name: "example.com"
 
-   - name: Generate a Self Signed OpenSSL certificate. | SELF SIGNED CERT GENERATED (.pem)
+   - name: Generate a Self Signed OpenSSL certificate. | SELF SIGNED CERT GENERATED (.pem) #public key of a server signed with it's own privat ekey (Self-Signed Certificate) 
      openssl_certificate:
       path: /etc/ssl/certs/example/fullchain.pem
       privatekey_path: /etc/ssl/certs/example/privkey.pem
